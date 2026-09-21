@@ -15,6 +15,13 @@ import urllib.request
 RACINE = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RACINE))
 
+if os.name == "nt":  # sinon les accents sortent en mojibake dans le journal CI
+    for flux in (sys.stdout, sys.stderr):
+        try:
+            flux.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
 BAC = pathlib.Path(tempfile.mkdtemp(prefix="transcrire-test-"))
 os.environ["APPDATA"] = str(BAC)
 os.environ["XDG_CONFIG_HOME"] = str(BAC)
