@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transcrire</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231C1C1E'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23FF3B30'/%3E%3C/svg%3E">
+<meta name="color-scheme" content="light">
+<style>
+:root{
+  --bg:#F2F1ED;--surface:#FFFFFF;--card:rgba(255,255,255,.92);
+  --ink:#1C1C1E;--ink-2:#3A3A3C;--muted:#6E6E73;--faint:#A1A1A6;
+  --line:rgba(28,28,30,.08);--line-2:rgba(28,28,30,.14);
+  --fill:rgba(118,118,128,.10);--fill-2:rgba(118,118,128,.16);
+  --red:#FF3B30;--red-deep:#D70015;--indigo:#5856D6;--indigo-deep:#3634A3;
+  --blue:#007AFF;--blue-deep:#0040DD;--orange:#FF9500;--orange-deep:#C93400;
+  --green:#248A3D;
+  --accent:var(--red);--accent-deep:var(--red-deep);
+  --font:"Segoe UI Variable Text","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,sans-serif;
+  --titre:"Segoe UI Variable Display","Segoe UI Semibold","Segoe UI",system-ui,sans-serif;
+  --mono:"Cascadia Mono","Consolas",ui-monospace,monospace;
+  --ease:cubic-bezier(.32,.72,0,1);--r:16px}
+body[data-mode=reunion]{--accent:var(--indigo);--accent-deep:var(--indigo-deep)}
+body[data-mode=dictee]{--accent:var(--blue);--accent-deep:var(--blue-deep)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:14.5px/1.5 var(--font);letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+body{padding:18px 20px 56px;min-height:100vh}
+.wrap{max-width:580px;margin:0 auto}
+button{font:inherit;color:inherit}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes blink{50%{opacity:.25}}
+@keyframes spin{to{transform:rotate(360deg)}}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(160deg,#3A3A3C,#1C1C1E);display:grid;place-items:center;box-shadow:0 1px 2px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.12)}
+.mark i{width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px color-mix(in srgb,var(--accent) 70%,transparent);transition:background 240ms}
+body.rec .mark i{animation:blink 1.2s ease-in-out infinite}
+h1{font:600 19px/1 var(--titre);letter-spacing:-.02em;margin:0}
+.right{display:flex;gap:6px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--ink-2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 10px;white-space:nowrap}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:#34C759}
+.pill.off .dot{background:var(--red)}.pill.low .dot{background:var(--orange)}
+.iconbtn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);transition:background 150ms,transform 150ms}
+.iconbtn:hover{background:var(--surface)}.iconbtn:active{transform:scale(.94)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px 22px;margin-bottom:12px;box-shadow:0 1px 1px rgba(0,0,0,.03),0 10px 30px -20px rgba(0,0,0,.22);animation:fadeUp 320ms var(--ease) both}
+.card:nth-of-type(2){animation-delay:40ms}.card:nth-of-type(3){animation-delay:80ms}
+.card h2{font:600 13px/1.2 var(--titre);color:var(--ink-2);margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card h2 small{font-weight:400;color:var(--muted);font-size:12px}
+kbd{font:600 11px/18px var(--font);color:var(--ink-2);background:var(--surface);border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;padding:0 5px;display:inline-block}
+.seg{display:inline-flex;background:var(--fill);border-radius:10px;padding:2px;gap:2px}
+.seg button{border:none;background:none;border-radius:8px;padding:5px 14px;font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;display:flex;align-items:center;gap:7px;transition:background 180ms var(--ease),box-shadow 180ms,color 180ms;min-height:30px}
+.seg button i{width:7px;height:7px;border-radius:50%;display:block;opacity:.55;transition:opacity 180ms}
+.seg button[data-mode=memo] i{background:var(--red)}
+.seg button[data-mode=reunion] i{background:var(--indigo)}
+.seg button[data-mode=dictee] i{background:var(--blue)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.06)}
+.seg button.on i{opacity:1}
+.seg button:disabled{opacity:.4;cursor:not-allowed}
+.rec{display:flex;flex-direction:column;align-items:center}
+.state{font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px;min-height:16px;margin:14px 0 18px}
+.state i{width:6px;height:6px;border-radius:50%;background:var(--faint)}
+.state.on{color:var(--accent)}
+.state.on i{background:var(--accent);animation:blink 1.2s ease-in-out infinite}
+.state.pause{color:var(--orange-deep)}.state.pause i{background:var(--orange)}
+.bouton{width:132px;height:132px;border-radius:50%;border:none;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.10),0 16px 34px -22px rgba(0,0,0,.5),inset 0 0 0 .5px rgba(0,0,0,.05);display:grid;place-items:center;cursor:pointer;transition:transform 220ms var(--ease),box-shadow 220ms}
+.bouton:hover{transform:scale(1.02)}
+.bouton:active{transform:scale(.97)}
+.bouton:disabled{opacity:.5;cursor:progress}
+.disque{width:84px;height:84px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent-deep));display:grid;place-items:center;transition:background 240ms}
+.disque b{width:0;height:0;border-radius:4px;background:#fff;transition:width 240ms var(--ease),height 240ms var(--ease)}
+body.rec .disque b{width:30px;height:30px}
+body.rec .bouton{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 16%,transparent),0 16px 34px -22px rgba(0,0,0,.5)}
+.chrono{font:300 44px/1 var(--mono);letter-spacing:.02em;color:var(--faint);margin:18px 0 6px;transition:color 240ms;font-variant-numeric:tabular-nums}
+body.rec .chrono{color:var(--ink)}
+.onde{display:flex;gap:3px;align-items:center;height:16px;margin-bottom:14px}
+.onde span{width:3px;height:3px;border-radius:2px;background:var(--faint);transition:height 90ms linear,background 240ms}
+body.rec .onde span{background:var(--accent)}
+.aide{font-size:13px;color:var(--muted);text-align:center;min-height:20px}
+.champ{width:100%;border:1px solid var(--line);background:var(--fill);border-radius:10px;padding:10px 13px;font:inherit;color:var(--ink);margin-top:16px;transition:background 150ms,border-color 150ms}
+.champ::placeholder{color:var(--faint)}
+.champ:focus{outline:none;background:var(--surface);border-color:var(--line-2)}
+.ligne{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.tag{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:13px;color:var(--ink-2);cursor:pointer;transition:background 150ms,border-color 150ms}
+.tag:hover{background:var(--surface)}
+.tag select{border:none;background:none;font:inherit;color:inherit;cursor:pointer;outline:none}
+.tag .sw{width:30px;height:18px;border-radius:999px;background:var(--fill-2);position:relative;transition:background 200ms var(--ease)}
+.tag .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform 200ms var(--ease)}
+.tag.on .sw{background:#34C759}
+.tag.on .sw::after{transform:translateX(12px)}
+.tag.mort{opacity:.45;cursor:not-allowed}
+.depot{border:1.5px dashed var(--line-2);border-radius:12px;padding:26px;text-align:center;color:var(--muted);cursor:pointer;transition:background 150ms,border-color 150ms}
+.depot:hover,.depot.survol{background:var(--fill);border-color:var(--accent)}
+.depot b{display:block;color:var(--ink-2);font-weight:600;margin-bottom:3px}
+.tache{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--line)}
+.tache:first-child{border-top:none}
+.tache .rond{width:22px;height:22px;border-radius:50%;border:2px solid var(--fill-2);border-top-color:var(--accent);animation:spin .9s linear infinite;flex:none}
+.tache.fini .rond,.tache.vide .rond,.tache.erreur .rond{animation:none;border:none;display:grid;place-items:center;font-size:13px}
+.tache.fini .rond{color:var(--green)}.tache.vide .rond{color:var(--orange-deep)}.tache.erreur .rond{color:var(--red-deep)}
+.tache div{min-width:0;flex:1}
+.tache strong{display:block;font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tache small{color:var(--muted);font-size:12px}
+.note{display:flex;align-items:center;gap:11px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.note:first-of-type{border-top:none}
+.note:hover strong{color:var(--accent-deep)}
+.note strong{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 150ms}
+.note small{display:block;color:var(--muted);font-size:12px}
+.note i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--faint)}
+.note[data-mode="Réunion"] i{background:var(--indigo)}
+.note[data-mode="Mémo"] i{background:var(--red)}
+.note[data-mode="Dictée"] i{background:var(--blue)}
+.vide{color:var(--muted);font-size:13px;padding:6px 0}
+dialog{border:none;border-radius:18px;padding:0;background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -30px rgba(0,0,0,.55);max-width:min(620px,92vw);width:100%}
+dialog::backdrop{background:rgba(28,28,30,.32);backdrop-filter:blur(3px)}
+dialog .tete{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);border-radius:18px 18px 0 0}
+dialog .tete h3{margin:0;font:600 15px/1.2 var(--titre)}
+dialog .corps{padding:18px 20px 22px;max-height:66vh;overflow:auto}
+dialog .corps pre{white-space:pre-wrap;font:13.5px/1.65 var(--font);margin:0}
+.reglage{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.reglage:first-child{border-top:none}
+.reglage p{margin:0;font-size:12.5px;color:var(--muted);max-width:330px}
+.reglage b{display:block;font-size:13.5px;color:var(--ink);font-weight:600;margin-bottom:2px}
+select.select{border:1px solid var(--line-2);background:var(--surface);border-radius:9px;padding:7px 10px;font:inherit;cursor:pointer}
+.bas{text-align:center;color:var(--faint);font-size:12px;margin-top:22px}
+.bas a{color:var(--muted)}
+</style>
+</head>
+<body data-mode="memo">
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <div class="mark"><i></i></div>
+    <h1>Transcrire</h1>
+  </div>
+  <div class="right">
+    <span class="pill" id="pSante"><span class="dot"></span><span>chargement…</span></span>
+    <button class="iconbtn" id="bReglages" title="Réglages" aria-label="Réglages">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/><circle cx="6" cy="4" r="1.6" fill="currentColor" stroke="none"/><circle cx="10" cy="8" r="1.6" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
+    </button>
+  </div>
+</header>
+
+<section class="card">
+  <div class="rec">
+    <div class="seg" id="segMode">
+      <button data-mode="memo" class="on"><i></i>Mémo</button>
+      <button data-mode="reunion"><i></i>Réunion</button>
+      <button data-mode="dictee"><i></i>Dictée</button>
+    </div>
+
+    <div class="state" id="etat"><i></i><span>prêt</span></div>
+
+    <button class="bouton" id="bRec" aria-label="Démarrer l'enregistrement">
+      <span class="disque"><b></b></span>
+    </button>
+
+    <div class="chrono" id="chrono">00:00</div>
+    <div class="onde" id="onde"></div>
+    <div class="aide" id="aide">Clique sur le bouton pour enregistrer ton micro.</div>
+
+    <input class="champ" id="titre" placeholder="Titre (facultatif) : réunion de lundi, note pour Paul…" maxlength="90">
+
+    <div class="ligne">
+      <label class="tag" for="langue">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6"/><path d="M2.4 6h11.2M2.4 10h11.2M8 2a10 10 0 000 12M8 2a10 10 0 010 12"/></svg>
+        <select id="langue">
+          <option value="auto">Langue auto</option>
+          <option value="fr">Français</option>
+          <option value="en">Anglais</option>
+          <option value="ar">Arabe</option>
+          <option value="es">Espagnol</option>
+          <option value="de">Allemand</option>
+          <option value="it">Italien</option>
+        </select>
+      </label>
+      <button class="tag" id="tResume"><span class="sw"></span>Résumé</button>
+      <button class="tag" id="tDossier">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 4.5A1.5 1.5 0 013.5 3h2.2l1.2 1.5h5.6A1.5 1.5 0 0114 6v6a1.5 1.5 0 01-1.5 1.5h-9A1.5 1.5 0 012 12z"/></svg>
+        Mes notes
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Déposer un fichier <small>audio ou vidéo</small></h2>
+  <div class="depot" id="depot">
+    <b>Clique ou glisse un fichier ici</b>
+    mp3, m4a, wav, mp4, mov, webm… jusqu'à 2 Go
+  </div>
+  <input type="file" id="fichier" multiple accept="audio/*,video/*" hidden>
+  <div id="taches"></div>
+</section>
+
+<section class="card">
+  <h2>Dernières notes <small id="compte"></small></h2>
+  <div id="notes"><div class="vide">Aucune note pour l'instant.</div></div>
+</section>
+
+<p class="bas">Tout reste sur cet ordinateur : aucun compte, aucune clé, rien n'est envoyé sur internet.</p>
+</div>
+
+<dialog id="dNote"><div class="tete"><h3 id="nomNote">Note</h3><button class="iconbtn" data-fermer>✕</button></div><div class="corps"><pre id="texteNote"></pre></div></dialog>
+
+<dialog id="dReglages"><div class="tete"><h3>Réglages</h3><button class="iconbtn" data-fermer>✕</button></div><div class="corps">
+  <div class="reglage">
+    <div><b>Qualité de la transcription</b><p>Plus le modèle est gros, plus il est juste, et plus il est lent. « Rapide » suffit pour un mémo clair.</p></div>
+    <select class="select" id="rModele">
+      <option value="tiny">Très rapide</option>
+      <option value="base">Rapide</option>
+      <option value="small">Équilibré</option>
+      <option value="medium">Précis</option>
+      <option value="large-v3">Maximum</option>
+    </select>
+  </div>
+  <div class="reglage">
+    <div><b>Résumé automatique</b><p id="etatOllama">Demande Ollama, installé sur cet ordinateur (gratuit).</p></div>
+    <select class="select" id="rModeleResume"></select>
+  </div>
+  <div class="reglage">
+    <div><b>Dossier des notes</b><p id="rDossier">…</p></div>
+    <button class="tag" id="rOuvrir">Ouvrir</button>
+  </div>
+</div></dialog>
+
+<script>
+const JETON="__JETON__";
+const $=s=>document.querySelector(s);
+const api=(route,options={})=>fetch(route,{...options,headers:{"X-Transcrire":JETON,...(options.headers||{})}});
+const corps=document.body;
+
+let mode="memo",enregistre=false,recorder=null,pistes=[],morceaux=[],debut=0,minuteur=null,audioCtx=null,analyseur=null,anime=null;
+
+/* --- onde ------------------------------------------------------ */
+const onde=$("#onde");
+for(let i=0;i<26;i++)onde.appendChild(document.createElement("span"));
+const barres=[...onde.children];
+
+/* --- modes ----------------------------------------------------- */
+$("#segMode").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b||enregistre)return;
+  mode=b.dataset.mode;
+  [...$("#segMode").children].forEach(x=>x.classList.toggle("on",x===b));
+  corps.dataset.mode=mode;
+  $("#aide").textContent={
+    memo:"Clique sur le bouton pour enregistrer ton micro.",
+    reunion:"Ton micro + le son de l'ordinateur. Windows demandera quoi partager : coche « Partager l'audio ».",
+    dictee:"Parle, arrête : le texte part directement dans le presse-papiers."
+  }[mode];
+  $("#titre").hidden=(mode==="dictee");
+});
+
+/* --- enregistrement -------------------------------------------- */
+$("#bRec").addEventListener("click",()=>enregistre?arreter():demarrer());
+
+async function demarrer(){
+  try{
+    const micro=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+    pistes=[micro];
+    let flux=micro;
+    if(mode==="reunion"){
+      let ecran=null;
+      try{ecran=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});}catch(e){}
+      if(ecran&&ecran.getAudioTracks().length){
+        pistes.push(ecran);
+        audioCtx=new AudioContext();
+        const melange=audioCtx.createMediaStreamDestination();
+        audioCtx.createMediaStreamSource(micro).connect(melange);
+        audioCtx.createMediaStreamSource(ecran).connect(melange);
+        flux=melange.stream;
+        ecran.getVideoTracks().forEach(t=>t.stop());
+      }else{
+        if(ecran)ecran.getTracks().forEach(t=>t.stop());
+        toast("Son de l'ordinateur non partagé : micro seul.");
+      }
+    }
+    mesurer(flux);
+    morceaux=[];
+    recorder=new MediaRecorder(flux,{mimeType:choisirFormat(),audioBitsPerSecond:96000});
+    recorder.ondataavailable=e=>{if(e.data.size)morceaux.push(e.data);};
+    recorder.onstop=envoyer;
+    recorder.start(1000);
+    enregistre=true;corps.classList.add("rec");debut=Date.now();
+    $("#etat").classList.add("on");$("#etat").lastElementChild.textContent=mode==="dictee"?"dictée":"enregistrement";
+    $("#bRec").setAttribute("aria-label","Arrêter l'enregistrement");
+    minuteur=setInterval(()=>{
+      const s=Math.floor((Date.now()-debut)/1000);
+      $("#chrono").textContent=`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;
+    },250);
+  }catch(erreur){
+    toast("Micro refusé. Autorise-le dans la barre d'adresse du navigateur.");
+  }
+}
+
+function choisirFormat(){
+  return ["audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"]
+    .find(f=>MediaRecorder.isTypeSupported(f))||"";
+}
+
+function arreter(){
+  if(!recorder)return;
+  enregistre=false;corps.classList.remove("rec");
+  clearInterval(minuteur);cancelAnimationFrame(anime);
+  barres.forEach(b=>b.style.height="3px");
+  $("#etat").classList.remove("on");$("#etat").lastElementChild.textContent="traitement";
+  $("#bRec").disabled=true;
+  recorder.stop();
+}
+
+function mesurer(flux){
+  audioCtx=audioCtx||new AudioContext();
+  analyseur=audioCtx.createAnalyser();analyseur.fftSize=512;
+  audioCtx.createMediaStreamSource(flux).connect(analyseur);
+  const donnees=new Uint8Array(analyseur.frequencyBinCount);
+  (function boucle(){
+    analyseur.getByteFrequencyData(donnees);
+    barres.forEach((b,i)=>{
+      const v=donnees[Math.floor(i*donnees.length/barres.length/2)]/255;
+      b.style.height=Math.max(3,Math.round(3+v*13))+"px";
+    });
+    anime=requestAnimationFrame(boucle);
+  })();
+}
+
+async function envoyer(){
+  pistes.forEach(f=>f.getTracks().forEach(t=>t.stop()));
+  if(audioCtx){audioCtx.close();audioCtx=null;}
+  const blob=new Blob(morceaux,{type:recorder.mimeType||"audio/webm"});
+  $("#bRec").disabled=false;$("#chrono").textContent="00:00";
+  $("#etat").lastElementChild.textContent="prêt";
+  recorder=null;
+  if(blob.size<2000){toast("Enregistrement trop court.");return;}
+  await deposer(blob,".webm",$("#titre").value,mode);
+  $("#titre").value="";
+}
+
+/* --- dépôt ------------------------------------------------------ */
+async function deposer(blob,extension,titre,modeEnvoi){
+  const dictee=modeEnvoi==="dictee";
+  const reponse=await api(dictee?"/api/dictee":"/api/depot",{
+    method:"POST",body:blob,
+    headers:{"X-Mode":modeEnvoi,"X-Ext":extension,"X-Langue":$("#langue").value,
+             "X-Titre":titre?btoa(unescape(encodeURIComponent(titre))):""}
+  });
+  const {id,erreur}=await reponse.json();
+  if(erreur)return toast(erreur);
+  suivre(id,titre||(dictee?"Dictée":"Enregistrement"));
+}
+
+const depot=$("#depot"),champFichier=$("#fichier");
+depot.addEventListener("click",()=>champFichier.click());
+champFichier.addEventListener("change",()=>{[...champFichier.files].forEach(envoyerFichier);champFichier.value="";});
+["dragenter","dragover"].forEach(e=>depot.addEventListener(e,x=>{x.preventDefault();depot.classList.add("survol");}));
+["dragleave","drop"].forEach(e=>depot.addEventListener(e,x=>{x.preventDefault();depot.classList.remove("survol");}));
+depot.addEventListener("drop",x=>[...x.dataTransfer.files].forEach(envoyerFichier));
+function envoyerFichier(f){
+  const point=f.name.lastIndexOf(".");
+  deposer(f,point>0?f.name.slice(point):".webm",f.name.slice(0,point>0?point:undefined),"memo");
+}
+
+/* --- suivi des tâches ------------------------------------------- */
+const taches=$("#taches");
+function suivre(id,nom){
+  const ligne=document.createElement("div");
+  ligne.className="tache";
+  ligne.innerHTML=`<div class="rond"></div><div><strong></strong><small>En file d'attente</small></div>`;
+  ligne.querySelector("strong").textContent=nom;
+  taches.prepend(ligne);
+  const tic=setInterval(async()=>{
+    const t=await(await api("/api/etat?id="+id)).json();
+    ligne.querySelector("small").textContent=t.message||"";
+    if(["fini","vide","erreur","inconnu"].includes(t.etat)){
+      clearInterval(tic);
+      ligne.classList.add(t.etat);
+      ligne.querySelector(".rond").textContent={fini:"✓",vide:"⊘",erreur:"!"}[t.etat]||"";
+      if(t.etat==="fini"){
+        ligne.querySelector("small").textContent=`${t.mots} mots · ${Math.round(t.duree)} s d'audio`;
+        if(t.mode==="dictee"&&t.texte)copier(t.texte);
+        charger();
+      }
+    }
+  },900);
+}
+
+async function copier(texte){
+  try{await navigator.clipboard.writeText(texte);toast("Texte copié dans le presse-papiers.");}
+  catch(e){toast("Texte prêt, mais la copie a été refusée par le navigateur.");}
+}
+
+/* --- notes ------------------------------------------------------ */
+async function charger(){
+  const {notes}=await(await api("/api/notes")).json();
+  const boite=$("#notes");
+  $("#compte").textContent=notes.length?notes.length+" au total":"";
+  if(!notes.length){boite.innerHTML='<div class="vide">Aucune note pour l\'instant.</div>';return;}
+  boite.innerHTML="";
+  notes.forEach(n=>{
+    const l=document.createElement("div");
+    l.className="note";l.dataset.mode=n.mode||"";
+    l.innerHTML=`<i></i><div style="flex:1;min-width:0"><strong></strong><small></small></div>`;
+    l.querySelector("strong").textContent=n.titre;
+    l.querySelector("small").textContent=[n.date,n.duree,n.mots?n.mots+" mots":""].filter(Boolean).join(" · ");
+    l.addEventListener("click",()=>voir(n.chemin,n.titre));
+    boite.appendChild(l);
+  });
+}
+
+async function voir(chemin,titre){
+  const {texte}=await(await api("/api/note?f="+encodeURIComponent(chemin))).json();
+  $("#nomNote").textContent=titre;
+  $("#texteNote").textContent=(texte||"").replace(/^---[\s\S]*?---\n/,"").trim();
+  $("#dNote").showModal();
+}
+
+/* --- réglages ---------------------------------------------------- */
+async function sante(){
+  const s=await(await api("/api/sante")).json();
+  const pastille=$("#pSante");
+  pastille.lastElementChild.textContent=(s.pret?"prêt":"chargement…")+" · "+s.materiel.toUpperCase();
+  pastille.classList.toggle("low",!s.pret);
+  $("#rModele").value=s.modele;
+  $("#langue").value=s.langue;
+  $("#rDossier").textContent=s.dossier;
+  $("#tResume").classList.toggle("on",!!s.resume);
+  const liste=$("#rModeleResume");
+  liste.innerHTML="";
+  if(!s.modeles_resume.length){
+    liste.innerHTML='<option>aucun</option>';liste.disabled=true;
+    $("#tResume").classList.add("mort");
+    $("#etatOllama").innerHTML='Installe <a href="https://ollama.com/download" target="_blank" rel="noopener">Ollama</a> puis <code>ollama pull llama3.2</code>, gratuit et local.';
+  }else{
+    liste.disabled=false;$("#tResume").classList.remove("mort");
+    s.modeles_resume.forEach(m=>{const o=document.createElement("option");o.value=o.textContent=m;liste.appendChild(o);});
+    liste.value=s.modele_resume||s.modeles_resume[0];
+    $("#etatOllama").textContent="Ollama détecté : le résumé est écrit en haut de chaque note.";
+  }
+  return s;
+}
+
+const enregistrerReglages=valeurs=>api("/api/reglages",{method:"POST",body:JSON.stringify(valeurs),headers:{"Content-Type":"application/json"}}).then(sante);
+
+$("#tResume").addEventListener("click",()=>{
+  if($("#tResume").classList.contains("mort"))return toast("Installe Ollama pour activer le résumé.");
+  enregistrerReglages({resume:!$("#tResume").classList.contains("on")});
+});
+$("#langue").addEventListener("change",()=>enregistrerReglages({langue:$("#langue").value}));
+$("#rModele").addEventListener("change",()=>{enregistrerReglages({modele:$("#rModele").value});toast("Le nouveau modèle se télécharge au prochain enregistrement.");});
+$("#rModeleResume").addEventListener("change",()=>enregistrerReglages({modele_resume:$("#rModeleResume").value}));
+$("#bReglages").addEventListener("click",()=>$("#dReglages").showModal());
+$("#tDossier").addEventListener("click",()=>api("/api/ouvrir"));
+$("#rOuvrir").addEventListener("click",()=>api("/api/ouvrir"));
+document.querySelectorAll("[data-fermer]").forEach(b=>b.addEventListener("click",e=>e.target.closest("dialog").close()));
+
+/* --- raccourci clavier (dans la page) ---------------------------- */
+addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT"||e.target.tagName==="SELECT")return;
+  if(e.ctrlKey&&e.key.toLowerCase()==="m"){e.preventDefault();enregistre?arreter():demarrer();}
+});
+
+/* --- toast -------------------------------------------------------- */
+let minuteurToast=null;
+function toast(message){
+  let t=$("#toast");
+  if(!t){t=document.createElement("div");t.id="toast";
+    t.style.cssText="position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);background:rgba(28,28,30,.94);color:#fff;padding:11px 18px;border-radius:12px;font-size:13.5px;box-shadow:0 18px 40px -20px rgba(0,0,0,.7);opacity:0;transition:opacity .22s,transform .22s;z-index:9;max-width:min(460px,88vw);text-align:center";
+    document.body.appendChild(t);}
+  t.textContent=message;
+  requestAnimationFrame(()=>{t.style.opacity="1";t.style.transform="translateX(-50%)";});
+  clearTimeout(minuteurToast);
+  minuteurToast=setTimeout(()=>{t.style.opacity="0";t.style.transform="translateX(-50%) translateY(10px)";},4200);
+}
+
+sante();charger();setInterval(sante,5000);
+</script>
+</body>
+</html>

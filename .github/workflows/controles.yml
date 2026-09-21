@@ -1,0 +1,69 @@
+name: Contrôles
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: Test bout en bout (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Composants
+        run: pip install -r requirements.txt
+      - name: Test
+        run: python tests/test_bout_en_bout.py
+
+  paquet:
+    name: Paquet Windows
+    needs: windows
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Composants
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+      - name: Construction
+        run: >
+          pyinstaller --noconfirm --clean --name Transcrire
+          --collect-all faster_whisper
+          --collect-all ctranslate2
+          --collect-all av
+          --collect-all tokenizers
+          --add-data "transcrire/web;transcrire/web"
+          --hidden-import transcrire.serveur
+          --hidden-import transcrire.moteur
+          --hidden-import transcrire.reglages
+          --hidden-import transcrire.resume
+          lanceur.py
+      - name: Vérification du paquet
+        run: |
+          Start-Process -FilePath "dist\Transcrire\Transcrire.exe" -ArgumentList "--port 7895 --sans-navigateur" -PassThru
+          Start-Sleep -Seconds 25
+          $reponse = Invoke-WebRequest -Uri "http://127.0.0.1:7895/" -UseBasicParsing
+          if ($reponse.Content -notmatch "Transcrire") { exit 1 }
+          Write-Host "Le paquet demarre et sert l'interface."
+      - name: Archive
+        run: |
+          Copy-Item README.md, LICENSE dist\Transcrire\
+          Compress-Archive -Path dist\Transcrire\* -DestinationPath Transcrire-Windows.zip
+      - name: Publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create ${{ github.ref_name }} Transcrire-Windows.zip --title "Transcrire ${{ github.ref_name }}" --notes "Décompresse le ZIP et lance Transcrire.exe. Rien d'autre à installer."
