@@ -1,5 +1,7 @@
 # Transcrire
 
+[![Contrôles](https://github.com/mazen-create11/transcrire-windows/actions/workflows/controles.yml/badge.svg)](https://github.com/mazen-create11/transcrire-windows/actions/workflows/controles.yml)
+
 Enregistre une réunion, un mémo ou une dictée, et récupère le texte écrit, sur ton PC Windows, gratuitement, sans compte ni abonnement.
 
 ![Aperçu de l'application](docs/apercu.png)
@@ -19,12 +21,24 @@ Chaque enregistrement produit une note Markdown datée, plus les sous-titres `.s
 
 ## Installation
 
-1. Clique sur **Code** puis **Download ZIP**, en haut de cette page. (Ou prends le ZIP dans [Releases](../../releases).)
-2. Décompresse le dossier où tu veux, par exemple dans `Documents`.
-3. Double-clique sur **`installer.bat`**. Il pose Python s'il manque, puis les composants, puis un raccourci sur le Bureau.
-4. Double-clique sur **Transcrire** (Bureau). Une fenêtre noire s'ouvre et l'interface apparaît dans ton navigateur.
+### Le plus simple : la version prête à l'emploi
 
-La première installation télécharge environ 500 Mo et prend cinq à dix minutes. Ensuite, tout est local.
+1. Va sur [la page Releases](../../releases/latest) et télécharge **`Transcrire-Windows.zip`** (92 Mo).
+2. Clic droit sur le ZIP, **Extraire tout**, dans `Documents` par exemple.
+3. Double-clique sur **`Transcrire.exe`**. C'est tout : pas de Python à installer, rien d'autre à faire.
+
+Windows peut afficher « Windows a protégé votre ordinateur » : c'est le message qu'il sort pour tout programme sans certificat payant. Clique sur **Informations complémentaires** puis **Exécuter quand même**.
+
+Au tout premier enregistrement, le modèle de reconnaissance vocale se télécharge une fois (environ 500 Mo). Ensuite, tout fonctionne hors ligne.
+
+### L'autre voie : depuis le code
+
+Si tu préfères voir ce que tu lances, ou si tu veux modifier l'application :
+
+1. Bouton vert **Code** puis **Download ZIP**, en haut de cette page.
+2. Décompresse le dossier.
+3. Double-clique sur **`installer.bat`** : il pose Python s'il manque, puis les composants, puis un raccourci sur le Bureau.
+4. Double-clique sur **Transcrire** (Bureau).
 
 Au premier enregistrement, le navigateur demande l'accès au micro : accepte.
 
